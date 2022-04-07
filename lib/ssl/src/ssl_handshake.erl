@@ -1686,6 +1686,16 @@ do_select_hashsign(HashSigns, PublicKeyAlgo, SupportedHashSigns) ->
                                   is_acceptable_hash_sign(Algos, SupportedHashSigns);
                          ({_, S} = Algos) when S == PublicKeyAlgo ->
                               is_acceptable_hash_sign(Algos, SupportedHashSigns);
+                         (rsa_pkcs1_sha512) when PublicKeyAlgo == rsa ->
+                              is_acceptable_hash_sign({rsa, sha512}, SupportedHashSigns);
+                         (rsa_pkcs1_sha384) when PublicKeyAlgo == rsa ->
+                              is_acceptable_hash_sign({rsa, sha384}, SupportedHashSigns);
+                         (rsa_pkcs1_sha256) when PublicKeyAlgo == rsa ->
+                              is_acceptable_hash_sign({rsa, sha256}, SupportedHashSigns);
+                         (ecdhe_sha1) when PublicKeyAlgo == ecdsa ->
+                              is_acceptable_hash_sign({ecdsa, sha}, SupportedHashSigns);
+                         (rsa_pkcs1_sha1) when PublicKeyAlgo == rsa ->
+                              is_acceptable_hash_sign({rsa, sha}, SupportedHashSigns);
                          (_A)  ->
                               false
                       end, HashSigns) of
