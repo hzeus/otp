@@ -398,7 +398,7 @@ handle_protocol_record(#ssl_tls{type = ?HANDSHAKE, fragment = Data},
     try
 	%% Calculate the effective version that should be used when decoding an incoming handshake
 	%% message.
-	EffectiveVersion = effective_version(Version, Options, Role),
+	EffectiveVersion = effective_version(Version, Options, Role, StateName),
 	{Packets, Buf} = tls_handshake:get_tls_handshake(EffectiveVersion,Data,Buf0, Options),
 	State =
 	    State0#state{protocol_buffers =
@@ -757,13 +757,16 @@ next_record_done(#state{protocol_buffers = Buffers} = State, CipherTexts, Connec
 %% be able to process new TLS 1.3 extensions, the effective version shall be set
 %% {3,4}.
 %% When highest supported version is {3,4} the negotiated version is set to {3,3}.
-effective_version({3,3} , #{versions := [Version|_]}, client) when Version >= {3,4} ->
+effective_version({3,3} , #{versions := [Version|_]},
+                  client, StateName) when Version >= {3,4}
+                                          andalso
+                                          ((StateName == hello) orelse (StateName == wait_sh)) ->
     Version;
 %% Use highest supported version during startup (TLS server, all versions).
-effective_version(undefined, #{versions := [Version|_]}, _) ->
+effective_version(undefined, #{versions := [Version|_]}, _, _) ->
     Version;
 %% Use negotiated version in all other cases.
-effective_version(Version, _, _) ->
+effective_version(Version, _, _, _) ->
     Version.
 
 assert_buffer_sanity(<<?BYTE(_Type), ?UINT24(Length), Rest/binary>>, 
